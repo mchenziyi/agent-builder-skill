@@ -1,5 +1,15 @@
 # Phase 4 验证细节
 
+## 验证优先级
+
+1. **优先使用 mock provider 做确定性单元测试**，验证 tool_calls → assistant message → tool result → final response 的协议链路
+2. mock 测试通过后，再使用真实 Provider 做 smoke / e2e 测试
+3. **不得把真实模型输出作为唯一通过依据**
+
+---
+
+
+
 > 本文档为 phase-04-tool-system.md 的**第二层（细节层）**，包含每条验证标准的具体操作步骤、预期输出和通过条件。
 > 仅在需要详细验证时查阅。
 
