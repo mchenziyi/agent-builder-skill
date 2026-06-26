@@ -9,10 +9,10 @@ description: Builds an Agent system phase by phase. Use when designing or implem
 
 ## 执行规则
 
-- **按序执行**：Phase 1→2→3→...→8，前一个验证通过后进入下一个
+- **默认完整路径**：按 Phase 1→2→3→...→8 执行
+- **MVP 路径例外**：当用户要求 MVP / 最小闭环 / 快速跑通时，允许先执行 Phase 1→2→4，跳过 Phase 3，待工具闭环完成后再补 Phase 3、5、6、7、8
 - **每 Phase 必验**：每个 Phase 完成后执行 `verification.md`，未通过需修复
 - **按需深读**：读 `index.md` 了解概览 → 执行单个 step-*.md → 完成读 `verification.md`
-- **MVP 优先**：Phase 1→2→4 可先跑通最小 Agent
 
 ## 依赖关系
 

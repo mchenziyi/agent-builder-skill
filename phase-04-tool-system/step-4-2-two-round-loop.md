@@ -5,8 +5,9 @@
 1. **第一轮**：调用 Provider，输入包含 `messages` 和 `tools`
 2. 如果返回 `finish_reason = "tool_calls"`：
    - 校验每个 tool_call 包含 `name`、`arguments`（合法 JSON）、`id`
+   - **先将 assistant message（含 tool_calls）追加到 messages**（顺序不可错）
    - 调用 Tool Registry 执行对应工具
-   - 将执行结果按目标模型协议回填（`role: "tool"`、`tool_call_id`）
+   - 将执行结果按目标模型协议回填为 `role: "tool"` 消息，逐个追加到 messages
 3. **第二轮**：再次调用 Provider，输入追加了回填的 tool result
 4. 如果返回 `finish_reason = "stop"` → 输出最终回复
 5. 如果继续返回 `"tool_calls"` → 回到步骤 2，直到完成或达到最大轮次

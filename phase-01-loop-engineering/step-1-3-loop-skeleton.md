@@ -15,6 +15,9 @@ function agent_loop(user_input, tools):
             return response.content
 
         elif response.finish_reason == "tool_calls":
+            // 必须先追加 assistant message（含 tool_calls）
+            messages.append(assistant_message(response.tool_calls))
+            // 再逐个执行并追加 tool result
             for each tool_call in response.tool_calls:
                 result = execute_tool(tool_call.name, tool_call.arguments)
                 messages.append(tool_message(tool_call.id, result))
