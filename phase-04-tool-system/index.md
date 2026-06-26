@@ -15,7 +15,7 @@
 
 ## 依赖
 
-- 前置：[Phase 2](../phase-02-core-architecture.md)
+- 前置：[Phase 2](../phase-02-core-architecture/index.md)
 
 ## 验证标准
 

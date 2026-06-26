@@ -44,7 +44,7 @@
 1. 注册 3 个不同工具，调用 `ListTools()` 应返回 3 个工具的 JSON Schema
 2. 调用 `Execute("get_weather", {"city":"北京"})` 应返回正确结果
 3. 调用不存在的工具应返回 error 而非 panic
-4. 用 `go test` 运行，三项全部通过即视为 V2 通过
+4. 用目标项目原生测试命令运行（如 `go test`、`pytest`、`npm test`、`cargo test`），三项全部通过即视为 V2 通过
 
 ### V3 — Provider Failover
 1. 配置两个 Provider，第二个使用无效 API Key（故意让第二个不可用）

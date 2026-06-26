@@ -196,7 +196,7 @@
 3. 执行对应的工具函数，将结果以 `role="tool"` 回填
 4. 再次调用 LLM（mock 返回 `finish_reason="stop"`）
 5. 断言：最终回复是基于工具结果生成的（包含天气信息）
-6. 用 `go test` 或 `pytest` 运行，通过即视为 V1 通过
+6. 用目标项目原生测试命令运行（如 `go test`、`pytest`、`npm test`、`cargo test`），通过即视为 V1 通过
 
 ### V2 — 工具结果回填
 1. 注册一个带计算逻辑的工具（如 `calculate`）

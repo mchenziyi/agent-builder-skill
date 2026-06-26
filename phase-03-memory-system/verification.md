@@ -53,4 +53,4 @@
 3. 断言：压缩后 Token 数 < 压缩前 50%
 4. 断言：压缩后关键信息（如用户名字、重要决策）未丢失
 
-> 用 `go test` 运行，通过即视为 Phase 3 通过。
+> 用目标项目原生测试命令运行（如 `go test`、`pytest`、`npm test`、`cargo test`），通过即视为 Phase 3 通过。

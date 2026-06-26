@@ -43,7 +43,7 @@
    - 第二次调用 → `finish_reason="stop"`，含最终回复
 3. 执行工具（echo 返回输入内容），以 `role="tool"` 回填
 4. 断言：最终回复中包含工具返回的内容（"hello"）
-5. 用 `go test` 运行，通过即视为 V1 通过
+5. 用目标项目原生测试命令运行（如 `go test`、`pytest`、`npm test`、`cargo test`），通过即视为 V1 通过
 
 ## 验证协议（V2 — 终止条件）
 
