@@ -188,44 +188,36 @@
 
 ---
 
-## 可执行验证
+## 验证协议
 
-```bash
-# V1：基本 FC 调用
-cat <<'EOF' | python3
-import json, openai
-client = openai.OpenAI()
+### V1 — FC 基本调用
+1. 用 mock provider 替代真实 LLM，mock 应返回 `finish_reason="tool_calls"`
+2. tool_call 内容：name="get_weather"，arguments={"city":"北京"}
+3. 执行对应的工具函数，将结果以 `role="tool"` 回填
+4. 再次调用 LLM（mock 返回 `finish_reason="stop"`）
+5. 断言：最终回复是基于工具结果生成的（包含天气信息）
+6. 用 `go test` 或 `pytest` 运行，通过即视为 V1 通过
 
-tools = [{
-    "type": "function",
-    "function": {
-        "name": "get_weather",
-        "description": "查询天气",
-        "parameters": {
-            "type": "object",
-            "properties": {"city": {"type": "string"}},
-            "required": ["city"]
-        }
-    }
-}]
+### V2 — 工具结果回填
+1. 注册一个带计算逻辑的工具（如 `calculate`）
+2. 触发工具调用，回填结果后再次调用 LLM
+3. 断言：最终回复的结果 = 工具返回的结果（不可由模型自行计算）
 
-resp = client.chat.completions.create(
-    model="gpt-4o", messages=[{"role":"user","content":"北京天气"}], tools=tools)
-msg = resp.choices[0].message
-assert msg.finish_reason == "tool_calls", f"预期 tool_calls, 得到 {msg.finish_reason}"
-assert msg.tool_calls[0].function.name == "get_weather"
-print("✅ V1 FC 基本调用通过")
-EOF
+### V3 — 并行调用
+1. 构造需多个工具的场景（如查三个城市的天气）
+2. mock 应一次返回 3 个 `tool_calls`，每个有独立的 `id` 和不同的参数
+3. 断言：3 个工具全部执行，结果全部回填
 
-# V3：并行调用
-cat <<'EOF' | python3
-resp = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role":"user","content":"北京、上海、广州天气"}],
-    tools=tools)
-assert len(resp.choices[0].message.tool_calls) == 3, "应输出 3 个并行 tool_calls"
-print("✅ V3 并行调用通过")
-EOF
-```
+### V4 — MCP 接入
+1. 启动一个本地 MCP Server（如 filesystem MCP Server）
+2. 连接后调用 `tools/list`，断言返回了工具列表
+3. 通过 Agent 调用 MCP 工具，断言结果正确返回
 
-> V4（MCP）、V5（安全权限）、V6（错误降级）需搭建对应环境后单独验证。
+### V5 — 安全权限
+1. 注册一个工具并标记为敏感（如 `delete_file`）
+2. 触发该工具调用，断言 Agent 暂停执行并请求用户确认
+3. 用户确认后才执行；用户拒绝则不执行
+
+### V6 — 错误降级
+1. 让一个工具返回 error，断言 Agent 不崩溃，返回友好提示
+2. 连续失败 3 次，断言 Agent 自动降级不再重复尝试

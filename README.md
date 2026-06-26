@@ -37,7 +37,7 @@ agent-builder-skill/
 AI 接入本 Skill 后的标准执行流程：
 
 ```
-1. 读 执行指南.md         → 了解核心规则
+1. 读 SKILL.md            → 了解执行规则
 2. 读 build-agent-system.md → 了解全貌
 3. 进入 Phase 1，读 index.md → 了解 5 个步骤
 4. 逐个执行 step-*.md      → 每步只读当前文件

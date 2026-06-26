@@ -1,3 +1,8 @@
+---
+name: agent-builder
+description: Builds an Agent system phase by phase. Use when designing or implementing Agent loops, tool systems, memory, RAG, multi-agent orchestration, or harness/evaluation systems.
+---
+
 # build-agent-system
 
 让任意 AI 按步骤搭建一个功能完整的 Agent 系统。从主循环到进化机制，8 个 Phase 覆盖全链路。

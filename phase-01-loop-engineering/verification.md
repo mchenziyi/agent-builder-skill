@@ -35,70 +35,26 @@
 | 2 | 触发该工具 3 次 | 第 3 次后 Agent 降级 |
 | 3 | 检查后续行为 | 不再尝试调工具 |
 
-## 可执行验证（V1）
+## 验证协议（V1 — 完整闭环）
 
-```go
-// test_loop_complete_test.go
-package agent
+1. 编写测试用例，用 mock provider 替代真实 LLM
+2. mock 应依次返回：
+   - 第一次调用 → `finish_reason="tool_calls"`，含一个 tool_call（name="echo", args={"msg":"hello"}）
+   - 第二次调用 → `finish_reason="stop"`，含最终回复
+3. 执行工具（echo 返回输入内容），以 `role="tool"` 回填
+4. 断言：最终回复中包含工具返回的内容（"hello"）
+5. 用 `go test` 运行，通过即视为 V1 通过
 
-import "testing"
+## 验证协议（V2 — 终止条件）
 
-func TestLoopComplete(t *testing.T) {
-    agent := NewAgent()
-    agent.RegisterTool("echo", func(args map[string]any) (any, error) {
-        return args["msg"], nil
-    })
+1. 编写测试用例，设置 `MAX_ROUNDS=2`
+2. mock 始终返回 `finish_reason="tool_calls"`（模拟需要 3 轮的场景）
+3. 断言：第 2 轮后循环终止，返回 fallback 消息（包含"超时"或"已达最大轮次"字样）
+4. 断言：日志中记录了终止原因
 
-    // V1.1：发送简单消息，期望直接回复
-    resp := agent.Chat("你好")
-    if resp == "" {
-        t.Error("V1.1: Agent 未回复")
-    }
+## 验证协议（V3 — 降级策略）
 
-    // V1.2：发送需要调工具的消息
-    resp = agent.Chat("调用 echo 工具，内容 hello")
-    if !resp.Contains("hello") {
-        t.Error("V1.2: Agent 未基于工具结果回复")
-    }
-    t.Log("✅ V1 完整闭环通过")
-}
-```
-
-## 可执行验证（V2）
-
-```go
-func TestTermination(t *testing.T) {
-    agent := NewAgent(WithMaxRounds(2))
-    agent.RegisterTool("slow_tool", func(args map[string]any) (any, error) {
-        return "done", nil
-    })
-
-    // 发一条需要 3 轮才能完成的任务
-    resp := agent.Chat("连续调用 3 次 slow_tool")
-    if resp.Contains("超时") || resp.Contains("已达最大轮次") {
-        t.Log("✅ V2 终止条件正常触发")
-    } else {
-        t.Error("V2: 未触发终止条件")
-    }
-}
-```
-
-## 可执行验证（V3）
-
-```go
-func TestFallback(t *testing.T) {
-    agent := NewAgent()
-    callCount := 0
-    agent.RegisterTool("broken_tool", func(args map[string]any) (any, error) {
-        callCount++
-        return nil, errors.New("故意失败")
-    })
-
-    resp := agent.Chat("调 broken_tool 三次")
-    if callCount >= 3 && !resp.Contains("error") {
-        t.Log("✅ V3 降级策略生效")
-    } else {
-        t.Error("V3: 降级未触发")
-    }
-}
-```
+1. 编写测试用例，注册一个 handler 始终返回 error 的工具
+2. 模拟用户连续 3 次触发该工具
+3. 断言：第 3 次后 Agent 进入降级状态（不再调用工具）
+4. 断言：Agent 不崩溃（进程正常退出）

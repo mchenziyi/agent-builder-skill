@@ -34,42 +34,21 @@
 
 - [ ] 评估看板正常显示
 - [ ] 改进后核心指标有积极变化
-## 可执行验证
+## 验证协议
 
-```go
-// test_feedback_test.go
-func TestFeedbackCollection(t *testing.T) {
-    store := NewFeedbackStore()
-    
-    store.Record(Feedback{SessionID: "s1", Type: "explicit", Score: 0.8})
-    store.Record(Feedback{SessionID: "s2", Type: "execution", Score: 0.0})
-    
-    stats := store.GetStats(TimeRange{Last: 24 * time.Hour})
-    if stats.Total != 2 { t.Error("反馈采集数量不符") }
-}
+### V1 — 反馈采集
+1. 分别模拟一次点赞（显式反馈）、一次工具失败（执行反馈）
+2. 断言：两条反馈都被正确记录
+3. 断言：可通过查询接口检索到这两条记录
 
-func TestPromptOptimizer(t *testing.T) {
-    opt := NewPromptOptimizer()
-    failures := []Failure{
-        {Pattern: "误删文件", Prompt: "当前 prompt"},
-        {Pattern: "误删文件", Prompt: "当前 prompt"},
-    }
-    
-    suggestions := opt.Analyze(failures)
-    if len(suggestions) == 0 { t.Error("未生成改进建议") }
-    t.Logf("建议: %v", suggestions)
-}
-```
+### V2 — 自动优化闭环
+1. 准备一批同类的失败案例（如工具调用失败的日志，10 条以上）
+2. 运行自动 Prompt 优化流水线
+3. 断言：生成了至少 1 条改进建议
+4. 断言：建议内容合理、可执行（人工评估）
 
-## 持续监控命令
-
-```bash
-# 查看最近 24h 的 Agent 健康指标
-# go run dashboard.go --time=24h
-
-# 输出示例：
-# 任务完成率: 94.2%     ↑ 2.1%
-# 平均轮次:    3.8      ↓ 0.4
-# 用户满意度:  4.3      ↑ 0.2
-# 工具成功率:  96.7%    ↑ 1.1%
-```
+### V3 — 改进趋势
+1. 运行评估看板，断言数据正确显示
+2. 应用一次改进（如优化 System Prompt）
+3. 运行一段时间（建议 24 小时）后，断言核心指标有积极变化
+4. 确认：至少完成一轮"采集→分析→改进→验证"的闭环

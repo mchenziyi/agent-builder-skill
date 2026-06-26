@@ -33,27 +33,22 @@
 | 3 | 检查是否出现幻觉 | 回复中没有检索结果之外的信息 |
 
 - [ ] 答案基于检索内容
-## 可执行验证
+## 验证协议
 
-```bash
-# V1：Chunking 质量测试
-cat <<'EOF' | python3
-doc = "第一段内容。" * 50 + "第二段内容。" * 50 + "第三段内容。" * 50
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
-chunks = splitter.split_text(doc)
-assert 3 <= len(chunks) <= 10, f"预期 3-10 chunks, 得到 {len(chunks)}"
-print(f"✅ Chunking 通过: {len(chunks)} chunks")
-EOF
+### V1 — Chunking 质量
+1. 准备一篇 2000 字以上的中文文档
+2. 用你选择的 chunking 策略切割，chunk_size=512 tokens，overlap=50 tokens
+3. 断言：切出 3-6 个 chunk
+4. 断言：每个 chunk 在段落边界处切割，无在段落中间切断的情况
+5. 断言：相邻 chunk 有重叠内容（用于验证 overlap 生效）
 
-# V2：检索召回率（需有向量数据库）
-# python3 -c "
-# from retriever import Retriever
-# r = Retriever()
-# results = r.search('你的测试问题')
-# assert len(results) > 0
-# print('✅ 检索通过')
-# "
+### V2 — 检索召回率
+1. 向知识库存入 10 篇文档
+2. 提出 5 个覆盖各文档的问题
+3. 对每个问题检索 top-5，断言正确答案在 top-5 中
+4. 整体召回率应 > 80%
 
-echo "⚠️ 完整检索测试需搭建向量数据库后运行"
-```
+### V3 — 端到端问答
+1. 通过 Agent 提问知识库内容
+2. 断言：最终回复引用了检索结果中的内容
+3. 断言：回复中不包含检索结果之外的信息（无幻觉）

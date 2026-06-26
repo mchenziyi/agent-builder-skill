@@ -34,41 +34,20 @@
 | 3 | 发送需要 Agent A 处理的任务 | 协调器返回 "该服务暂时不可用" |
 
 - [ ] 单 Agent 故障不影响其他 Agent
-## 可执行验证
+## 验证协议
 
-```go
-// test_multi_agent_test.go
-func TestRouting(t *testing.T) {
-    router := NewRouter()
-    router.AddRule("weather", "天气")
-    router.AddRule("calc", "计算")
-    
-    agent := router.Route("北京天气")
-    if agent != "weather" { t.Error("路由错误") }
-    
-    agent = router.Route("123*456")
-    if agent != "calc" { t.Error("路由错误") }
-}
+### V1 — 路由准确率
+1. 配置两个 Agent：一个处理天气查询，一个处理计算问题
+2. 准备 10 条天气相关的请求 + 10 条计算相关的请求
+3. 断言：路由准确率 > 95%
+4. 断言：对于模糊请求（如既像天气又像计算的），路由至少有一个合理的兜底行为（不走 panic）
 
-func TestAgentCommunication(t *testing.T) {
-    coord := NewOrchestrator()
-    coord.RegisterAgent("agent_a", &mockAgent{name: "a"})
-    coord.RegisterAgent("agent_b", &mockAgent{name: "b"})
-    
-    result := coord.Execute(Plan{
-        Steps: []Step{
-            {Agent: "agent_a", Task: "获取用户信息"},
-            {Agent: "agent_b", Task: "根据用户信息推荐"},
-        }
-    })
-    if result.Error != nil { t.Error("协作失败") }
-}
+### V2 — Agent 协作
+1. 设计协作任务：Agent A 查询用户信息，将结果传递给 Agent B，Agent B 据此推荐内容
+2. 用 mock 让 Agent A 返回模拟的用户信息
+3. 断言：Agent B 的推荐确实基于 Agent A 的输出
 
-func TestCircuitBreaker(t *testing.T) {
-    cb := NewCircuitBreaker(WithThreshold(3))
-    for i := 0; i < 5; i++ {
-        cb.Call(func() error { return errors.New("fail") })
-    }
-    if cb.State() != "open" { t.Error("熔断器未打开") }
-}
-```
+### V3 — 错误隔离
+1. 让 Agent A 依赖的服务不可用（如关掉其使用的 API）
+2. 发送仅需要 Agent B 的任务，断言 Agent B 正常工作
+3. 发送需要 Agent A 的任务，断言协调器返回友好的降级消息
