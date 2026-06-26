@@ -14,6 +14,32 @@
 | 5.6 | [step-5-6-advanced-rag.md](step-5-6-advanced-rag.md) | 设计高级 RAG 范式 |
 | 5.7 | [step-5-7-evaluation.md](step-5-7-evaluation.md) | 评估 RAG 效果 |
 
+## 协议规范
+
+### "不要过度建设"判断准则
+
+| 场景 | 建议 | 理由 |
+|---|---|---|
+| < 100 篇文档，单用户 | 文件读取 + BM25 | 向量库增加运维无收益 |
+| 100-10000 篇文档 | Chroma + BGE | 轻量，够用 |
+| > 10000 篇文档 | Milvus / Qdrant | 需要分布式和索引优化 |
+| 已有 PostgreSQL | pgvector | 不引入额外中间件 |
+
+### Chunking 约束
+- chunk_size: 512-1024 tokens
+- overlap: 50-100 tokens
+- 必须在段落/句子边界切割，不允许在单词中间切断
+- 同一文档的所有 chunk 共享一个 `doc_id`
+
+### 检索约束
+- top-K 默认 5，最多 20
+- 当 Reranker 不可用时，至少使用向量 + 关键词双路召回
+- 检索超时 2s，超时返回已返回的结果（部分结果优于无结果）
+
+### Query Rewrite 约束
+- 仅当原始查询结果 < 3 条时触发，不提前重写
+- HyDE：生成假设答案的模型与最终问答模型可用不同模型（低成本模型生成假设）
+
 ## 依赖
 
 - 前置：[Phase 2](../phase-02-core-architecture/index.md) + [Phase 4](../phase-04-tool-system/index.md)
