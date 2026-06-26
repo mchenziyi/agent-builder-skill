@@ -4,7 +4,7 @@
 
 ## 宗旨
 
-**让任意 AI（如 Reasonix、Claude Code、Cursor 等）读取本 Skill 后，能够按 Phase 逐步构建出一个生产可用的 Agent 系统。** 从主循环到进化机制，覆盖全链路。
+**让任意 AI（如 Reasonix、Claude Code、Cursor 等）读取本 Skill 后，能够按 Phase 逐步构建出一个可验证、可逐步生产化的 Agent 系统。** 从主循环到进化机制，覆盖全链路。
 
 ## 文件结构
 

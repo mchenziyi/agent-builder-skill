@@ -5,7 +5,7 @@ description: Builds an Agent system phase by phase. Use when designing or implem
 
 # build-agent-system
 
-让任意 AI 按步骤搭建一个功能完整的 Agent 系统。从主循环到进化机制，8 个 Phase 覆盖全链路。
+让任意 AI 按步骤搭建一个可验证、可逐步生产化的 Agent 系统。从主循环到进化机制，8 个 Phase 覆盖全链路。
 
 ## 执行规则
 
