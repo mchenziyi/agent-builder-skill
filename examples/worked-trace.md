@@ -11,7 +11,7 @@
 
 ```
 AI 读取 SKILL.md，得到关键信息：
-- 有 8 个 Phase，依赖关系是 1→2→3→4→5→6→7→8
+- 有 8 个 Phase，Phase 依赖关系见 `build-agent-system.md` 或 `SKILL.md` 中的依赖表（完整推荐路径为 1→2→3→4→5→6→7→8，但实际依赖允许并行和跳过）
 - 可以先走 MVP 路径：Phase 1 → 2 → 4
 - 每 Phase 完成后要跑 verification.md
 ```
@@ -93,4 +93,4 @@ AI 运行：pytest tests/test_loop.py → 通过 ✅
 - **不要一次加载整个 Phase**：每次只读当前 step-*.md，执行完再读下一步
 - **不要跳过验证**：verification.md 是判断"这一步做对了没有"的唯一标准
 - **按目标语言翻译**：step 文件中的伪代码和命名只是参考，要用你的目标语言实现
-- **MVP 优先**：Phase 1→2→4 产出最小可用 Agent，之后再完善
+- **MVP 路径例外**：Phase 1→2→4 产出最小可用 Agent，之后再补
