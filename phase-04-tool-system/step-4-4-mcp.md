@@ -14,21 +14,18 @@
 
 ## Client 实现
 
-```go
-type MCPClient struct {
-    session  mcp.ClientSession
-    tools    []Tool
-}
+```
+class MCPClient:
+    session: MCPClientSession
+    tools: Tool[]
 
-func (c *MCPClient) ListTools() ([]Tool, error) {
-    result, err := c.session.ListTools()
-    return convertMCPTools(result.Tools), nil
-}
+    function list_tools() → Tool[]:
+        result = this.session.list_tools()
+        return convert_mcp_tools(result.tools)
 
-func (c *MCPClient) CallTool(name string, args map[string]any) (any, error) {
-    result, err := c.session.CallTool(name, args)
-    return result.Content, nil
-}
+    function call_tool(name, args) → any:
+        result = this.session.call_tool(name, args)
+        return result.content
 ```
 
 ## 注意事项

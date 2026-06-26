@@ -1,17 +1,18 @@
 # Step 2.5 — 设计 Session 管理
 
-```go
-type Session struct {
-    ID        string
-    Messages  []Message
-    Metadata  map[string]any
+Session 的数据结构：
+
+```
+Session {
+    id: string          // 全局唯一（UUID / ULID）
+    messages: []        // 对话历史
+    metadata: {}        // 业务元数据
 }
 
-type SessionStore interface {
-    Get(id string) (*Session, error)
-    Save(s *Session) error
-    Delete(id string) error
-}
+SessionStore 接口：
+    get(id) → Session | NotFound
+    save(session)
+    delete(id)
 ```
 
 **存储选型：** 原型用内存，生产用 Redis 或数据库。

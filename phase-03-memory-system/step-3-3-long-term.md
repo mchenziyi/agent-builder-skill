@@ -1,12 +1,14 @@
 # Step 3.3 — 实现长期记忆
 
-```go
-type MemoryItem struct {
-    ID         string
-    Content    string
-    Embedding  []float32
-    Importance float32
-    CreatedAt  time.Time
+记忆项的数据结构：
+
+```
+MemoryItem {
+    id: string
+    content: string
+    embedding: float[]      // 向量
+    importance: float       // 0-1
+    created_at: timestamp
 }
 ```
 

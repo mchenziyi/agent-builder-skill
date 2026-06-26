@@ -1,11 +1,11 @@
 # Step 7.5 — 实现错误隔离
 
-```go
-type CircuitBreaker struct {
-    failures     int
-    threshold    int     // 熔断阈值（默认 3）
-    resetTimeout time.Duration
-    state        string  // closed / open / half-open
+```
+CircuitBreaker {
+    failures: int
+    threshold: int              // 熔断阈值（默认 3）
+    reset_timeout: duration     // 自动恢复时间
+    state: "closed" | "open" | "half-open"
 }
 ```
 

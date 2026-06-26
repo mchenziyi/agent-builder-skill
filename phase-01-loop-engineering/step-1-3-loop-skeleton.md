@@ -1,29 +1,25 @@
 # Step 1.3 — 实现循环骨架
 
-```go
-func AgentLoop(userInput string, tools []Tool) string {
-    messages := []Message{systemPrompt, {role: "user", content: userInput}}
-    rounds := 0
+核心循环的伪代码：
 
-    for {
-        if rounds > MAX_ROUNDS {
-            return fallbackResponse("已达最大轮次")
-        }
+```
+function agent_loop(user_input, tools):
+    messages = [system_prompt, user_message(user_input)]
+    rounds = 0
+
+    while rounds < MAX_ROUNDS:
         rounds++
+        response = llm.chat(messages, tools)
 
-        response := llm.Chat(messages, tools)
+        if response.finish_reason == "stop":
+            return response.content
 
-        switch response.FinishReason {
-        case "stop":
-            return response.Content
-        case "tool_calls":
-            for _, tc := range response.ToolCalls {
-                result := executeTool(tc.Function.Name, tc.Function.Arguments)
-                messages = append(messages, ToolResultMessage(tc.ID, result))
-            }
-        }
-    }
-}
+        elif response.finish_reason == "tool_calls":
+            for each tool_call in response.tool_calls:
+                result = execute_tool(tool_call.name, tool_call.arguments)
+                messages.append(tool_message(tool_call.id, result))
+
+    return fallback("已达最大轮次")
 ```
 
 **实现方式：** 状态机（精细控制）/ while 循环（简单快速）/ 事件驱动（高并发）。

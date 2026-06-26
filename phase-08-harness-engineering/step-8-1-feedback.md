@@ -1,12 +1,17 @@
 # Step 8.1 — 设计反馈采集
 
-```go
-type Feedback struct {
-    SessionID string
-    Type      string  // explicit / implicit / execution / correction
-    Score     float32
-    Detail    string
+```
+Feedback {
+    session_id: string
+    type: "explicit" | "implicit" | "execution" | "correction"
+    score: float      // 0.0 - 1.0
+    detail: string
 }
+
+FeedbackStore 接口：
+    record(feedback)
+    query(filter) → Feedback[]
+    get_stats(time_range) → Stats
 ```
 
 | 类型 | 采集 | 质量 | 覆盖度 |

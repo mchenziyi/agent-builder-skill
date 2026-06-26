@@ -1,12 +1,13 @@
 # Step 7.3 — 实现 Agent 间通信
 
-```go
-type AgentMessage struct {
-    From      AgentID
-    To        AgentID
-    Type      string  // request / response / broadcast
-    Payload   map[string]any
-    RequestID string
+```
+AgentMessage {
+    from: AgentID
+    to: AgentID
+    type: "request" | "response" | "broadcast"
+    payload: {}
+    request_id: string
+    timestamp: timestamp
 }
 ```
 
