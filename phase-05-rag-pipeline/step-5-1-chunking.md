@@ -2,15 +2,14 @@
 
 **推荐：递归语义切分 + 小重叠**
 
-```python
-for doc in documents:
-    paragraphs = split_by_paragraph(doc)
-    for p in paragraphs:
-        if token_count(p) > MAX_CHUNK_SIZE:
-            sentences = split_by_sentence(p)
-            chunks.extend(merge_to_target_size(sentences, MAX_CHUNK_SIZE, OVERLAP))
+```
+for each document:
+    按段落切分
+    for each 段落:
+        if token_count > MAX_CHUNK_SIZE:
+            按句子切分 → 合并至目标大小（含重叠）
         else:
-            chunks.append(p)
+            直接作为一个 chunk
 ```
 
 **参数：** MAX_CHUNK_SIZE=512-1024 tokens，OVERLAP=50-100 tokens

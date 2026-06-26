@@ -1,13 +1,8 @@
 # Step 6.2 — 配置解码参数
 
-```python
-def get_params(task_type):
-    if task_type == "tool_call":
-        return {"temperature": 0.1, "top_p": 0.2}
-    elif task_type == "creative":
-        return {"temperature": 0.8, "top_p": 0.95}
-    elif task_type == "code":
-        return {"temperature": 0.2, "top_p": 0.4}
-```
-
-**原则：** 工具调用用低温保确定性，创意用高温保多样性。
+| 任务类型 | temperature | top_p | 说明 |
+|---|---|---|---|
+| 工具调用 | 0.0 - 0.2 | 0.1 - 0.3 | 低温，保证确定性 |
+| 代码生成 | 0.1 - 0.3 | 0.3 - 0.5 | 低随机，保持语法正确 |
+| 通用对话 | 0.3 - 0.5 | 0.7 - 0.9 | 适中的平衡 |
+| 创意生成 | 0.7 - 0.9 | 0.9 - 1.0 | 高温，鼓励多样性 |

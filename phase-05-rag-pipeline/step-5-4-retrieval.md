@@ -8,11 +8,12 @@
 ```
 
 **RRF 合并：**
-```python
-def rrf_merge(results_list, k=60):
+
+```
+function rrf_merge(results_list, k=60):
     scores = {}
-    for results in results_list:
+    for each results in results_list:
         for rank, doc_id in enumerate(results):
-            scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank)
-    return sorted(scores.items(), key=lambda x: -x[1])
+            scores[doc_id] += 1 / (k + rank)
+    return sort(scores, descending)
 ```
