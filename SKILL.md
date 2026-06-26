@@ -22,7 +22,7 @@ Phase 2 ← Phase 1
 Phase 3 ← Phase 2
 Phase 4 ← Phase 2
 Phase 5 ← Phase 2 + Phase 4
-Phase 6 ← 可并行
+Phase 6 ← Phase 2 Provider 抽象完成后可并行；真实评测/成本优化需评测集和日志/trace
 Phase 7 ← Phase 2 + Phase 4
 Phase 8 ← Phase 1-7
 ```

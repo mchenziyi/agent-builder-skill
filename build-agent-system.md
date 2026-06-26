@@ -5,7 +5,7 @@
 ## 核心原则
 
 - 每个 Phase 按顺序完成，前一个通过验证后才进下一个
-- 每步完成后必须跑验证，未通过需修复
+- 每个 Phase 完成后必须跑 verification.md，未通过需修复，未通过需修复
 - MVP 路径优先：Phase 1 → 2 → 4 先跑通最小闭环
 
 ## Phase 依赖关系
@@ -16,7 +16,7 @@ Phase 2 ← Phase 1
 Phase 3 ← Phase 2
 Phase 4 ← Phase 2
 Phase 5 ← Phase 2 + Phase 4
-Phase 6 ← 可并行
+Phase 6 ← Phase 2 Provider 抽象完成后可并行；真实评测/成本优化需评测集和日志/trace
 Phase 7 ← Phase 2 + Phase 4
 Phase 8 ← Phase 1-7
 ```
