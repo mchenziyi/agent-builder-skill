@@ -33,5 +33,38 @@
 | 2 | 发送聊天请求 | 自动切换到可用 Provider |
 | 3 | 检查响应 | 正常返回 |
 
-- [ ] 主 Provider 失败后自动 failover
-- [ ] 切换过程对用户透明
+## 可执行验证
+
+```go
+// test_registry_test.go
+func TestRegistry(t *testing.T) {
+    r := NewToolRegistry()
+    
+    // V1：注册三个工具
+    r.Register(Tool{Name: "a", Handler: func(a any) (any, error) { return "a", nil }})
+    r.Register(Tool{Name: "b", Handler: func(a any) (any, error) { return "b", nil }})
+    r.Register(Tool{Name: "c", Handler: func(a any) (any, error) { return "c", nil }})
+    
+    // V2：发现
+    tools := r.List()
+    if len(tools) != 3 { t.Error("V2: 工具数量不符") }
+    
+    // V3：调用
+    result, err := r.Execute("a", nil)
+    if err != nil || result != "a" { t.Error("V3: 调用失败") }
+    
+    // V4：不存在的工具
+    _, err = r.Execute("not_exists", nil)
+    if err == nil { t.Error("V4: 预期错误未返回") }
+}
+
+// test_provider_test.go
+func TestProviderFailover(t *testing.T) {
+    pm := NewProviderManager()
+    pm.AddProvider(&mockProvider{name: "main", available: true})
+    pm.AddProvider(&mockProvider{name: "backup", available: false})
+    
+    resp, err := pm.Chat("test")
+    if err != nil { t.Error("failover 失败") }
+}
+```

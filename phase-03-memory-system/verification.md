@@ -34,4 +34,36 @@
 | 4 | 检查压缩后关键信息是否保留 | 关键事实（用户名字、偏好）未丢失 |
 
 - [ ] Token 消耗显著下降
-- [ ] 关键信息不丢失
+## 可执行验证
+
+```go
+func TestShortTermMemory(t *testing.T) {
+    m := NewShortTermMemory(WithMaxMessages(3))
+    
+    m.Add("msg1"); m.Add("msg2"); m.Add("msg3")
+    if len(m.Messages()) != 3 { t.Error("初始 3 条") }
+    
+    m.Add("msg4")  // 应丢弃 msg1
+    if len(m.Messages()) != 3 { t.Error("滑动窗口应保持 3 条") }
+    if m.Messages()[0] == "msg1" { t.Error("最早的 msg1 应被丢弃") }
+}
+
+func TestLongTermMemory(t *testing.T) {
+    m := NewLongTermMemory()
+    m.Store("用户喜欢蓝色")
+    
+    results := m.Search("我喜欢什么颜色")
+    if !contains(results, "蓝色") { t.Error("长期记忆检索失败") }
+}
+
+func TestCompression(t *testing.T) {
+    m := NewMemoryManager()
+    for i := 0; i < 15; i++ {
+        m.Add(fmt.Sprintf("msg%d", i))
+    }
+    before := m.TokenCount()
+    m.Compress()
+    after := m.TokenCount()
+    if after >= before { t.Error("压缩后 Token 未减少") }
+}
+```

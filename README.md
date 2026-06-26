@@ -10,8 +10,9 @@
 
 ```
 agent-builder-skill/
-├── 执行指南.md                 ← AI 先读这篇，了解执行流程
+├── SKILL.md                    ← AI 入口：执行规则 + Phase 列表
 ├── build-agent-system.md       ← Layer 0：Phase 目录 + 依赖关系
+├── README.md                   ← 项目说明
 │
 ├── phase-01-loop-engineering/  ← 设计 Agent 主循环
 ├── phase-02-core-architecture/ ← 搭建 Agent 骨架

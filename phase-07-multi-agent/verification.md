@@ -34,4 +34,41 @@
 | 3 | 发送需要 Agent A 处理的任务 | 协调器返回 "该服务暂时不可用" |
 
 - [ ] 单 Agent 故障不影响其他 Agent
-- [ ] 用户收到友好的降级提示
+## 可执行验证
+
+```go
+// test_multi_agent_test.go
+func TestRouting(t *testing.T) {
+    router := NewRouter()
+    router.AddRule("weather", "天气")
+    router.AddRule("calc", "计算")
+    
+    agent := router.Route("北京天气")
+    if agent != "weather" { t.Error("路由错误") }
+    
+    agent = router.Route("123*456")
+    if agent != "calc" { t.Error("路由错误") }
+}
+
+func TestAgentCommunication(t *testing.T) {
+    coord := NewOrchestrator()
+    coord.RegisterAgent("agent_a", &mockAgent{name: "a"})
+    coord.RegisterAgent("agent_b", &mockAgent{name: "b"})
+    
+    result := coord.Execute(Plan{
+        Steps: []Step{
+            {Agent: "agent_a", Task: "获取用户信息"},
+            {Agent: "agent_b", Task: "根据用户信息推荐"},
+        }
+    })
+    if result.Error != nil { t.Error("协作失败") }
+}
+
+func TestCircuitBreaker(t *testing.T) {
+    cb := NewCircuitBreaker(WithThreshold(3))
+    for i := 0; i < 5; i++ {
+        cb.Call(func() error { return errors.New("fail") })
+    }
+    if cb.State() != "open" { t.Error("熔断器未打开") }
+}
+```

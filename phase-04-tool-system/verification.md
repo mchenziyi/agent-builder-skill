@@ -188,29 +188,44 @@
 
 ---
 
-## 附录：一键验证脚本（参考）
+## 可执行验证
 
-以下伪代码可帮助你自动化验证流程：
+```bash
+# V1：基本 FC 调用
+cat <<'EOF' | python3
+import json, openai
+client = openai.OpenAI()
 
-```python
-def test_fc_basic():
-    agent = create_agent(tools=[get_weather])
-    response = agent.chat("北京天气")
-    
-    assert response.finish_reason == "tool_calls"
-    assert response.tool_calls[0].function.name == "get_weather"
-    assert response.tool_calls[0].function.arguments["city"] == "北京"
-    
-    result = execute_tool("get_weather", {"city": "北京"})
-    final = agent.chat_with_result(result)
-    assert "北京" in final.content
-    
-def test_parallel():
-    agent = create_agent(tools=[get_weather])
-    response = agent.chat("北京、上海、广州天气")
-    
-    assert len(response.tool_calls) == 3
-    # 验证三个 tool_call 的城市参数互不相同
-    cities = [tc.function.arguments["city"] for tc in response.tool_calls]
-    assert len(set(cities)) == 3
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "description": "查询天气",
+        "parameters": {
+            "type": "object",
+            "properties": {"city": {"type": "string"}},
+            "required": ["city"]
+        }
+    }
+}]
+
+resp = client.chat.completions.create(
+    model="gpt-4o", messages=[{"role":"user","content":"北京天气"}], tools=tools)
+msg = resp.choices[0].message
+assert msg.finish_reason == "tool_calls", f"预期 tool_calls, 得到 {msg.finish_reason}"
+assert msg.tool_calls[0].function.name == "get_weather"
+print("✅ V1 FC 基本调用通过")
+EOF
+
+# V3：并行调用
+cat <<'EOF' | python3
+resp = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role":"user","content":"北京、上海、广州天气"}],
+    tools=tools)
+assert len(resp.choices[0].message.tool_calls) == 3, "应输出 3 个并行 tool_calls"
+print("✅ V3 并行调用通过")
+EOF
 ```
+
+> V4（MCP）、V5（安全权限）、V6（错误降级）需搭建对应环境后单独验证。

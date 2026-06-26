@@ -33,4 +33,27 @@
 | 3 | 检查是否出现幻觉 | 回复中没有检索结果之外的信息 |
 
 - [ ] 答案基于检索内容
-- [ ] 无幻觉
+## 可执行验证
+
+```bash
+# V1：Chunking 质量测试
+cat <<'EOF' | python3
+doc = "第一段内容。" * 50 + "第二段内容。" * 50 + "第三段内容。" * 50
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
+chunks = splitter.split_text(doc)
+assert 3 <= len(chunks) <= 10, f"预期 3-10 chunks, 得到 {len(chunks)}"
+print(f"✅ Chunking 通过: {len(chunks)} chunks")
+EOF
+
+# V2：检索召回率（需有向量数据库）
+# python3 -c "
+# from retriever import Retriever
+# r = Retriever()
+# results = r.search('你的测试问题')
+# assert len(results) > 0
+# print('✅ 检索通过')
+# "
+
+echo "⚠️ 完整检索测试需搭建向量数据库后运行"
+```

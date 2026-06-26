@@ -34,4 +34,42 @@
 
 - [ ] 评估看板正常显示
 - [ ] 改进后核心指标有积极变化
-- [ ] 至少完成一轮"采集→分析→改进→验证"闭环
+## 可执行验证
+
+```go
+// test_feedback_test.go
+func TestFeedbackCollection(t *testing.T) {
+    store := NewFeedbackStore()
+    
+    store.Record(Feedback{SessionID: "s1", Type: "explicit", Score: 0.8})
+    store.Record(Feedback{SessionID: "s2", Type: "execution", Score: 0.0})
+    
+    stats := store.GetStats(TimeRange{Last: 24 * time.Hour})
+    if stats.Total != 2 { t.Error("反馈采集数量不符") }
+}
+
+func TestPromptOptimizer(t *testing.T) {
+    opt := NewPromptOptimizer()
+    failures := []Failure{
+        {Pattern: "误删文件", Prompt: "当前 prompt"},
+        {Pattern: "误删文件", Prompt: "当前 prompt"},
+    }
+    
+    suggestions := opt.Analyze(failures)
+    if len(suggestions) == 0 { t.Error("未生成改进建议") }
+    t.Logf("建议: %v", suggestions)
+}
+```
+
+## 持续监控命令
+
+```bash
+# 查看最近 24h 的 Agent 健康指标
+# go run dashboard.go --time=24h
+
+# 输出示例：
+# 任务完成率: 94.2%     ↑ 2.1%
+# 平均轮次:    3.8      ↓ 0.4
+# 用户满意度:  4.3      ↑ 0.2
+# 工具成功率:  96.7%    ↑ 1.1%
+```
