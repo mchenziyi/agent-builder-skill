@@ -15,19 +15,17 @@
   ]
 ```
 
-## 并行执行
+## 并行执行要求
 
-```python
-import asyncio
+AI 必须使用目标项目原生并发机制实现：
 
-async def execute_parallel(tool_calls):
-    async def call(tc):
-        args = json.loads(tc.function.arguments)
-        return await execute_tool(tc.function.name, args)
-    
-    results = await asyncio.gather(*[call(tc) for tc in tool_calls])
-    return results
-```
+| 语言 | 并发机制 |
+|---|---|
+| Python | `asyncio.gather` |
+| JavaScript / TypeScript | `Promise.all` |
+| Go | goroutine + `sync.WaitGroup` |
+| Rust | `futures::future::join_all` |
+| Java | `CompletableFuture.allOf` |
 
 ## 可并行 vs 不可并行
 
