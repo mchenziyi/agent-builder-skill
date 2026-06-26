@@ -1,0 +1,216 @@
+# Phase 4 验证细节
+
+> 本文档为 phase-04-tool-system.md 的**第二层（细节层）**，包含每条验证标准的具体操作步骤、预期输出和通过条件。
+> 仅在需要详细验证时查阅。
+
+---
+
+## V1 — FC 基本调用流程
+
+**对应主文档：** Agent 能通过 Function Calling 调用真实工具
+
+### 前置条件
+
+- Agent 已启动，llm provider 支持 Function Calling（如 DeepSeek、GPT-4o 等）
+- 已注册至少一个工具，例如 `get_weather`：
+
+```json
+{
+  "name": "get_weather",
+  "description": "查询指定城市的实时天气",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": { "type": "string", "description": "城市名称" }
+    },
+    "required": ["city"]
+  }
+}
+```
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 发送用户消息："北京今天天气怎么样？" | — |
+| 2 | 检查模型第一轮响应 | `finish_reason` 应为 `"tool_calls"` |
+| 3 | 检查 `tool_calls` 内容 | 函数名应为 `get_weather`，参数应为 `{"city": "北京"}` |
+| 4 | 手动模拟工具执行 | 返回 `"北京今天晴，15°C"` |
+| 5 | 将结果以 `role: "tool"` 回填 | — |
+| 6 | 再次调用模型 | 正常返回，`finish_reason` 为 `"stop"` |
+| 7 | 检查最终回复 | 应包含"北京"和温度信息 |
+
+### 通过条件
+
+- [ ] 模型正确输出了 `tool_calls` 而非自然语言
+- [ ] 工具名称和参数完全匹配预期
+- [ ] 工具结果回填后，模型基于结果生成了正确的最终回复
+- [ ] 整个流程响应时间 < 10s
+
+### 失败排查
+
+| 现象 | 可能原因 | 解决 |
+|---|---|---|
+| 模型输出自然语言而非 tool_calls | 模型不支持 FC 或工具描述不清晰 | 检查模型是否支持 FC，优化 tool description 字段 |
+| 参数不完整 | description 未写清楚必填参数 | 在 parameters 中正确设置 required 字段 |
+| 工具结果回填后模型忽略 | tool_call_id 不匹配或 role 用错 | 确认 tool_call_id 与对应请求一致，role 应为 "tool" |
+
+---
+
+## V2 — 工具结果回填与推理
+
+**对应主文档：** 工具执行结果能正确回填到对话，模型基于结果生成回复
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 注册一个带计算逻辑的工具，如 `calculate` | 工具正常运行 |
+| 2 | 发送消息："计算 123 * 456 等于多少" | — |
+| 3 | 模型输出 tool_calls，调用 `calculate` | 参数应为 `{"expr": "123*456"}` |
+| 4 | 执行计算，回填结果 `56088` | — |
+| 5 | 再次调用模型 | — |
+| 6 | 检查最终回复 | 应明确说出计算结果是 56088 |
+
+### 通过条件
+
+- [ ] 模型未尝试自己计算（未在自然语言中直接输出数字）
+- [ ] 最终回复中的结果完全 = 工具返回的结果
+- [ ] 对话历史中 tool_calls 和 tool 消息成对出现
+
+---
+
+## V3 — 并行工具调用
+
+**对应主文档：** 支持并行调用：多个无依赖工具同时执行
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 发送消息："帮我查北京、上海、广州三个城市的天气" | — |
+| 2 | 检查第一轮响应 | `tool_calls` 应为数组，长度 = 3 |
+| 3 | 检查每个 tool_call | 分别对应三个不同城市参数 |
+| 4 | 并行执行三个工具（可用 goroutine / asyncio.gather） | 全部返回正确 |
+| 5 | 分别以 `role: "tool"` 回填（注意每个有不同的 tool_call_id） | — |
+| 6 | 再次调用模型 | 正常返回 |
+| 7 | 检查最终回复 | 应综合三个城市的信息 |
+
+### 通过条件
+
+- [ ] 一轮响应中包含了多个 `tool_calls`
+- [ ] 每个 tool_call 有独立的 `id`
+- [ ] 三个工具结果都正确回填，未出现串行等待
+- [ ] 最终回复综合了所有工具结果
+
+### 失败排查
+
+| 现象 | 可能原因 | 解决 |
+|---|---|---|
+| 模型只输出一个 tool_call | 模型倾向保守，需在 System Prompt 中提示"可以一次调多个" | 在工具描述或 System Prompt 加：如需要可同时调用多个工具 |
+| 部分结果丢失 | tool_call_id 混乱 | 每个 tool 结果使用对应的 tool_call_id |
+
+---
+
+## V4 — MCP 工具接入
+
+**对应主文档：** MCP Server 的工具能被动态发现并调用
+
+### 前置条件
+
+- 已安装 MCP Client 库
+- 有一个可连接的 MCP Server（如本地 filesystem MCP Server）
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 启动 MCP Client，连接 Server | 连接成功，无报错 |
+| 2 | 调用 `tools/list` | 返回工具列表，包含工具名称和描述 |
+| 3 | 将返回的工具映射到本地 Tool Registry | 注册成功 |
+| 4 | 通过 Agent 调用刚注册的 MCP 工具 | 正常触发 tool_calls |
+| 5 | Agent 通过 `tools/call` 调用 MCP 工具 | 返回正确结果 |
+| 6 | 结果回填，模型生成最终回复 | 回复基于工具结果 |
+
+### 通过条件
+
+- [ ] MCP Server 的工具列表能被动态发现
+- [ ] MCP 工具像本地工具一样被 Agent 调用
+- [ ] 工具发现和调用的额外延迟 < 500ms
+
+---
+
+## V5 — 安全权限确认
+
+**对应主文档：** 敏感工具有权限确认机制
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 注册一个"危险"工具标记为需确认，如 `delete_file` | — |
+| 2 | 发送消息："帮我删掉 /tmp/test.txt" | — |
+| 3 | 模型输出 tool_calls，调用 `delete_file` | — |
+| 4 | 触发权限确认流程 | Agent 不直接执行，而是反问用户"确认要删除吗？" |
+| 5 | 用户确认后执行 | 正常执行 |
+| 6 | 用户否认后不执行 | 不调用工具，回复"已取消" |
+
+### 通过条件
+
+- [ ] 敏感工具被调用时 Agent 暂停执行并请求确认
+- [ ] 用户确认后才执行
+- [ ] 用户拒绝后不执行
+- [ ] 整个确认流程对用户透明
+
+---
+
+## V6 — 错误降级
+
+**对应主文档：** 工具调用失败的场景有降级策略
+
+### 操作步骤
+
+| 步骤 | 操作 | 预期结果 |
+|---|---|---|
+| 1 | 让一个工具返回错误（如关掉 API） | — |
+| 2 | 发送消息触发该工具 | — |
+| 3 | 执行工具函数返回 error | — |
+| 4 | 检查 Agent 行为 | 不应崩溃，应告知用户"该服务暂时不可用" |
+| 5 | 尝试连续失败 3 次 | Agent 应自动降级，不再重复尝试 |
+| 6 | 检查日志 | 记录了错误的详细信息和降级原因 |
+
+### 通过条件
+
+- [ ] 工具失败不导致 Agent 崩溃
+- [ ] 连续失败后 Agent 不再重复尝试
+- [ ] 用户收到友好的错误提示
+- [ ] 日志记录了错误详情
+
+---
+
+## 附录：一键验证脚本（参考）
+
+以下伪代码可帮助你自动化验证流程：
+
+```python
+def test_fc_basic():
+    agent = create_agent(tools=[get_weather])
+    response = agent.chat("北京天气")
+    
+    assert response.finish_reason == "tool_calls"
+    assert response.tool_calls[0].function.name == "get_weather"
+    assert response.tool_calls[0].function.arguments["city"] == "北京"
+    
+    result = execute_tool("get_weather", {"city": "北京"})
+    final = agent.chat_with_result(result)
+    assert "北京" in final.content
+    
+def test_parallel():
+    agent = create_agent(tools=[get_weather])
+    response = agent.chat("北京、上海、广州天气")
+    
+    assert len(response.tool_calls) == 3
+    # 验证三个 tool_call 的城市参数互不相同
+    cities = [tc.function.arguments["city"] for tc in response.tool_calls]
+    assert len(set(cities)) == 3
+```
