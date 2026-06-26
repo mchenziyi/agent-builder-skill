@@ -24,4 +24,4 @@
 
 ## 输出产物
 
-- `feedback.go` / `prompt_optimizer.go` / `skill_miner.go` / `ab_test.go` / `dashboard.go`
+- Feedback 反馈采集模块 / Prompt 自动优化模块 / Skill 挖掘模块 / A/B 测试框架 / Dashboard 评估看板模块

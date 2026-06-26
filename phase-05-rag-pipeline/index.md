@@ -26,4 +26,4 @@
 
 ## 输出产物
 
-- `chunker.go` / `embedder.go` / `retriever.go` / `query_rewriter.go` / `evaluator.go`
+- Chunker 文档切割模块 / Embedder 模块 / Retriever 模块 / Query Rewriter 模块 / Evaluator 模块

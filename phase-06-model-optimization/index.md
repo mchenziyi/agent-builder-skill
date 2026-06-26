@@ -24,4 +24,4 @@
 
 ## 输出产物
 
-- `params.go` / `model_benchmark.go` / `selection_report.md`
+- 解码参数配置模块 / 模型评测模块 / 选型报告

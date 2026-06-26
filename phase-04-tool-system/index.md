@@ -28,8 +28,8 @@
 
 ## 输出产物
 
-- `tool_registry.go` — 工具注册中心
-- `tool_executor.go` — 工具执行引擎
-- `mcp_client.go` — MCP 客户端
-- `skill_loader.go` — Skill 加载器
-- `tool_security.go` — 安全校验模块
+- Tool Registry 模块
+- Tool Executor 模块
+- MCP Client 模块
+- Skill Loader 模块
+- Security 校验模块

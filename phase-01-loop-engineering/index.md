@@ -25,6 +25,6 @@
 
 ## 输出产物
 
-- `loop_engine.go` — 主循环骨架
-- `termination.go` — 终止条件
-- `fallback.go` — 降级策略
+- Loop Engine 模块
+- 终止条件模块
+- Fallback 降级模块

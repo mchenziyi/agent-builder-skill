@@ -24,4 +24,4 @@
 
 ## 输出产物
 
-- `orchestrator.go` / `router.go` / `agent_message.go` / `circuit_breaker.go`
+- Orchestrator 协调器模块 / Router 路由模块 / Agent 通信协议模块 / Circuit Breaker 熔断器模块

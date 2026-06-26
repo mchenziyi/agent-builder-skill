@@ -26,7 +26,7 @@
 
 ## 输出产物
 
-- `profile.go` / `prompt.go` — Profile 和 System Prompt
-- `registry.go` — Tool Registry
-- `session.go` — Session 管理
-- `provider.go` — Provider 抽象层
+- Profile / Prompt 管理模块
+- Tool Registry 模块
+- Session 管理模块
+- Provider 抽象层模块
