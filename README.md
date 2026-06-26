@@ -1,6 +1,6 @@
 # 🤖 Agent Builder Skill
 
-> 一套结构化的 Skill 系统，让 AI 能按步骤快速搭建一个功能完整的 Agent。
+> 一套结构化的 Skill 系统，让 AI 能按步骤快速搭建一个可验证、可逐步生产化的 Agent。
 
 ## 宗旨
 
